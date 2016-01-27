@@ -31,9 +31,21 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="commands.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="entry.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="entry.h" />
+		<Unit filename="log.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="log.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="main.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

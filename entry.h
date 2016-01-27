@@ -3,13 +3,13 @@
 
 #include "main.h"
 
-/*	
+/*
 	Слова
 	0 word_len			byte		word length
   1-3 content_len		byte[3]		article length
 	? word				char[?]		null-terminated word
 	? content			char[?]		null-terminated content
-	
+
 	Удалённое слово
 	0 remove_flag		byte		значение 0
   1-3 remove_length		byte[3]		бывшие ранее word_len+content_len
@@ -31,6 +31,7 @@ struct entry_t
 extern uint64 read_entry( FILE * f, struct entry_t * entry, uint64 offset, int flags );
 extern void   write_entry( FILE * f, struct entry_t * entry );
 extern int    existent_entry( struct entry_t * entry );
+extern uint64 entry_size( struct entry_t * entry );
 extern void   free_entry( struct entry_t * entry );
 
 #endif

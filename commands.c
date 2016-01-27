@@ -56,7 +56,7 @@ void command_find( FILE * f )
 	if( 0 == index )
 	{
 		// слова нет, сообщить
-		fprintf( stderr, "INFO: нет такого слова\n" );
+		fprintf( stderr, "[INFO] нет такого слова\n" );
 	}
 	else
 	{
@@ -117,5 +117,40 @@ void command_remove( FILE * f )
 
 void command_defragment( FILE * f )
 {
-	TODO( "Дефрагментация." );
+    uint64 read_index, write_index, index;
+    read_index = write_index = jump_to_first_word( f );
+    int read_count = 0;
+    int write_count = 0;
+    struct entry_t entry;
+    again:
+    if( write_count < header.actual_words )
+    {
+        index = read_entry( f, &entry, read_index, READ_ENTRY_ALL );
+        if( existent_entry( &entry ) )
+        {
+            read_index = index;
+            read_count++;
+            int code = fseek( f, write_index, SEEK_SET );
+            if( 0 != code )
+                WTF();
+            write_entry( f, &entry );
+            write_count++;
+            write_index += entry_size( &entry );
+            goto again;
+        }
+        else
+        {
+            read_index = index;
+            goto again;
+        }
+    }
+    else
+    {
+        header.total_words = header.actual_words;
+        write_header( &header, f );
+        /*int code = fseek( f, write_index, SEEK_SET );
+        if( 0 != code )
+            WTF();*/
+        ftruncate( fileno( f ), write_index );
+    }
 }

@@ -15,14 +15,14 @@
 1453895420 /home/veritas/projects/raidix/tasks/dictionary/log.h
 	<stdlib.h>
 
-1453895334 /home/veritas/projects/raidix/tasks/dictionary/entry.h
+1453901283 /home/veritas/projects/raidix/tasks/dictionary/entry.h
 	"main.h"
 
-1453899015 source:/home/veritas/projects/raidix/tasks/dictionary/commands.c
+1453902531 source:/home/veritas/projects/raidix/tasks/dictionary/commands.c
 	"entry.h"
 
 1453899741 source:/home/veritas/projects/raidix/tasks/dictionary/log.c
 
-1453899868 source:/home/veritas/projects/raidix/tasks/dictionary/entry.c
+1453901207 source:/home/veritas/projects/raidix/tasks/dictionary/entry.c
 	<stdio.h>
 
