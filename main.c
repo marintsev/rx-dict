@@ -50,6 +50,13 @@ struct header_t
 	Страница:
 	0 words			int32 количество слов в странице
 	4 next_page		int32 указатель на следующую страницу, или 0, если последняя.
+	
+	Слово
+	0 byte			word length
+  1-3 byte[3]		article length
+  4-5 byte[2]		смещение статьи в странице
+  6-9 byte[4]		страница, в которой начинается статья
+	? char[?]		null-terminated word
 */
 struct page_t
 {
@@ -92,8 +99,19 @@ void read_header( struct header_t * header, FILE * f )
 	code = fread( header, HEADER_SIZE, 1, f );
 	if( 1 != code )
 		WTF();
-	
+}
 
+void save_database()
+{
+	fprintf( stderr, "TODO: save_database\n" );
+}
+
+void remove_newline( char * str )
+{
+	char * p = str;
+	while( *p )
+		p++;
+	p[-1] = 0;
 }
 
 int main( int argc, char ** argv )
@@ -128,7 +146,7 @@ int main( int argc, char ** argv )
 		if( errno == ENOENT )
 		{
 			f = fopen( db_filename, "w+" );
-			fprintf( stderr, "Файл не существовал и теперь создан.\n" );
+			fprintf( stderr, "INFO: Файл не существовал и теперь создан.\n" );
 		}
 		else
 		{
@@ -140,13 +158,13 @@ int main( int argc, char ** argv )
 	else
 	{
 		f = fopen( db_filename, "r+" );
-		fprintf( stderr, "Существующий файл открыт для работы.\n" );
+		fprintf( stderr, "INFO: Существующий файл открыт для работы.\n" );
 	}
 	assert( NULL != f );
 	
 	fseek( f, 0, SEEK_END );
 	int length = ftell( f );
-	fprintf( stderr, "Длина файла: %d\n", length );
+	fprintf( stderr, "DEBUG: Длина файла: %d\n", length );
 	
 	struct header_t header;
 	if( length < HEADER_SIZE )
@@ -162,12 +180,40 @@ int main( int argc, char ** argv )
 		// Проверяем
 		if( header.version != 1 )
 		{
-			fprintf( stderr, "База данных (%s), вероятно, испорчена. Возможно, стоит её удалить.\n", db_filename );
+			fprintf( stderr, "FATAL: База данных (%s), вероятно, испорчена. Возможно, стоит её удалить.\n", db_filename );
 			WTF();
 		}
 	}
 	
 	// Всё есть. Можно работать.
+	printf( "Введите help для справки, quit для выхода.\n" );
+	int working = 1;
+	while( working )
+	{
+		printf( "> " );
+	
+		char str[6];
+		fgets( str, 6, stdin );
+		remove_newline( str );
+		if( strcmp( str, "help" ) == 0 )
+		{
+			printf( "add\tДобавить слово.\n" );
+			printf( "find\tНайти слово.\n" );
+			printf( "del\tУдалить слово.\n" );
+			printf( "quit\tВыход и запись базы.\n" );
+		}
+		else if( strcmp( str, "quit" ) == 0 ||
+				 strcmp( str, "exit" ) == 0 ||
+				 strcmp( str, "bye" ) == 0 )
+		{
+			save_database();
+			exit( EXIT_SUCCESS );
+		}
+		else
+		{
+			fprintf( stderr, "ERROR: Неизвестная команда '%s'\n", str );
+		}
+	}
 	
 	/*
 	Операции:
