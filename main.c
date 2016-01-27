@@ -28,28 +28,7 @@ void check()
 	}
 }
 
-
-
-
-
 // Формат базы (little endian).
-
-/*
-	Заголовок:
-	0 version		int32 версия
-	4 words			int32 количество слов
-*/
-#define HEADER_SIZE	(4*2)
-
-/*
-	Страница:
-	0 words			int32 количество слов в странице
-*/
-struct header_t
-{
-	uint32 version;
-	uint32 words;
-};
 
 
 
@@ -67,7 +46,8 @@ void write_header( struct header_t * header, FILE * f )
 void write_new_header( struct header_t * header, FILE * f )
 {
 	header->version = 1;
-	header->words = 0;
+	header->total_words = 0;
+	header->actual_words = 0;
 
 	int code;
 	write_header( header, f );
@@ -113,16 +93,12 @@ void remove_newline( char * str )
 
 uint64 jump_to_first_word( FILE * f )
 {
-	int offset = HEADER_SIZE, start;
+	long offset = HEADER_SIZE;
 	int code = fseek( f, offset, SEEK_SET );
 	if( 0 != code )
 		WTF();
 	return offset;
 }
-
-
-
-
 
 /*
 	Находит смещение, где находится запись для этого слова.
@@ -132,17 +108,22 @@ uint64 find_word( FILE * f, char * pattern )
 {
 	int i;
 	int code;
-	int offset = jump_to_first_word( f );
+	uint64 offset = jump_to_first_word( f );
 	int start;
 
 	struct entry_t entry;
-	for( i=0; i<header.words; i++ )
+	for( i=0; i<header.total_words; i++ )
 	{
 		start = offset;
 		// TODO: совсем не обязательно выделять память здесь
-		offset = read_entry( f, &entry, start, READ_ENTRY_CONTENT | READ_ENTRY_WORD );
-		int good = strcmp( entry.word, pattern ) == 0;
-		free_entry( &entry );
+		offset = read_entry( f, &entry, start, READ_ENTRY_WORD );
+		int good = 0;
+		if( existent_entry( &entry ) )
+		{
+			good = strcmp( entry.word, pattern ) == 0;
+			free_entry( &entry );
+		}
+			
 		if( good )
 			return start;
 	}
@@ -157,7 +138,7 @@ uint64 skip_to_end( FILE * f )
 	int start;
 
 	struct entry_t entry;
-	for( i=0; i<header.words; i++ )
+	for( i=0; i<header.total_words; i++ )
 	{
 		start = offset;
 		// TODO: совсем не обязательно выделять память здесь
@@ -167,23 +148,7 @@ uint64 skip_to_end( FILE * f )
 	return offset;
 }
 
-void write_entry( FILE * f, struct entry_t * entry )
-{
-	assert( entry->word_len <= 128 );
-	assert( entry->content_len < 16777216 );
-	uint32 temp = (entry->word_len & 0xFF) | ((entry->content_len) << 8);
-	int code = fwrite( &temp, 4, 1, f );
-	if( 1 != code )
-		WTF();
-	
-	code = fwrite( entry->word, entry->word_len, 1, f );
-	if( 1 != code )
-		WTF();
-	
-	code = fwrite( entry->content, entry->content_len, 1, f );
-	if( 1 != code )
-		WTF();
-}
+
 
 void add_word( FILE * f, char * word, char * content )
 {
@@ -194,7 +159,9 @@ void add_word( FILE * f, char * word, char * content )
 	entry.word = word;
 	entry.content = content;
 	write_entry( f, &entry );
-	header.words++;
+	header.total_words++;
+	header.actual_words++;
+	write_header( &header, f );
 //	TODO( "Вставить слово." );
 }
 

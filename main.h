@@ -11,14 +11,26 @@
 #define uint32 unsigned int
 #define uint64 unsigned long
 
-#define WTF() wtf( __LINE__ )
-#define TODO( message ) todo( __LINE__, message )
-
 #define EXIT_WRONG_SIZEOF (1)
 #define EXIT_WRONG_USAGE  (2)
 #define EXIT_WTF		  (3)
 #define EXIT_TODO		  (4)
 #define EXIT_WRONG_RIGHTS (5)
+
+#include "log.h"
+
+// TODO: перетащить в header.c
+
+#define HEADER_SIZE	(4 * 3)
+
+struct header_t
+{
+	uint32 version;      // сейчас 1
+	uint32 total_words;	 // количество даже удалённых слов
+	uint32 actual_words; // количество неудалённых слов
+};
+
+extern struct header_t header;
 
 #endif
 

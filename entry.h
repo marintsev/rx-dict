@@ -25,9 +25,13 @@ struct entry_t
 
 #define READ_ENTRY_CONTENT	(1<<0)
 #define READ_ENTRY_WORD		(1<<1)
+#define READ_ENTRY_DO_SEEK  (1<<2)
+#define READ_ENTRY_ALL		(READ_ENTRY_CONTENT | READ_ENTRY_WORD | READ_ENTRY_DO_SEEK)
 
 extern uint64 read_entry( FILE * f, struct entry_t * entry, uint64 offset, int flags );
-extern void free_entry( struct entry_t * entry );
+extern void   write_entry( FILE * f, struct entry_t * entry );
+extern int    existent_entry( struct entry_t * entry );
+extern void   free_entry( struct entry_t * entry );
 
 #endif
 
