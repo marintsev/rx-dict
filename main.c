@@ -23,6 +23,7 @@
 #define EXIT_WRONG_USAGE  (2)
 #define EXIT_WTF		  (3)
 #define EXIT_TODO		  (4)
+#define EXIT_WRONG_RIGHTS (5)
 
 void check()
 {
@@ -300,6 +301,11 @@ int main( int argc, char ** argv )
 		{
 			f = fopen( db_filename, "w+" );
 			fprintf( stderr, "INFO: Файл не существовал и теперь создан.\n" );
+		}
+		else if( errno == EACCES )
+		{
+			fprintf( stderr, "FATAL: Нет прав доступа к базе.\n" );
+			exit( EXIT_WRONG_RIGHTS );
 		}
 		else
 		{
