@@ -1,5 +1,7 @@
 ﻿#include "entry.h"
 
+#include <stdio.h>
+
 uint64 read_entry( FILE * f, struct entry_t * entry, uint64 offset, int flags )
 {
 	int code;
@@ -10,12 +12,17 @@ uint64 read_entry( FILE * f, struct entry_t * entry, uint64 offset, int flags )
 			WTF();
 	}
 
-	uint32 temp;
-	code = fread( &temp, 4, 1, f );
-	if( 1 != code )
+	/*printf("init offset: %d", offset);
+	printf("ftell: %d", ftell(f));*/
+
+	uint32 temp = 0;
+	fseek( f, offset, SEEK_SET );
+	code = fread( &temp, 1, 4, f );
+	if( 4 != code )
 		WTF();
+    //printf( "temp: %8X", temp );
 	offset += 4;
-		
+
 	entry->word_len = temp & 0xFF;
 	entry->content_len = temp >> 8;
 
@@ -28,7 +35,11 @@ uint64 read_entry( FILE * f, struct entry_t * entry, uint64 offset, int flags )
 			entry->word = malloc( entry->word_len+1 );
 			code = fread( entry->word, 1, entry->word_len, f );
 			if( entry->word_len != code )
+			{
+                //printf( "word_len = %d, code = %d, offset = %d", entry->word_len, code, offset );
+                //fflush(stdout);
 				WTF();
+            }
 			offset += entry->word_len;
 			entry->word[entry->word_len] = 0;
 		}
@@ -40,11 +51,11 @@ uint64 read_entry( FILE * f, struct entry_t * entry, uint64 offset, int flags )
 			if( 0 != code )
 				WTF();
 		}
-		
+
 		// если надо, то читаем статью
 		if( ( flags & READ_ENTRY_CONTENT ) != 0 )
 		{
-			printf( "content_len: %d", entry->content_len );
+			//printf( "content_len: %d", entry->content_len );
 			entry->content = malloc( entry->content_len+1 );
 			code = fread( entry->content, entry->content_len, 1, f);
 			if( 1 != code )
@@ -84,11 +95,11 @@ void write_entry( FILE * f, struct entry_t * entry )
 		WTF();
 
 	if( entry->word_len != 0 )
-	{	
+	{
 		code = fwrite( entry->word, entry->word_len, 1, f );
 		if( 1 != code )
 			WTF();
-	
+
 		code = fwrite( entry->content, entry->content_len, 1, f );
 		if( 1 != code )
 			WTF();

@@ -95,7 +95,6 @@ int remove_words( FILE * f, char * word )
 			WTF();
 
 		write_entry( f, &entry);
-		free_entry( &entry );
 		header.actual_words--;
 		write_header( &header, f );
 	}

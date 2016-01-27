@@ -1,0 +1,28 @@
+# depslib dependency file v1.0
+1453899689 source:/home/veritas/projects/raidix/tasks/dictionary/main.c
+	"main.h"
+	"entry.h"
+
+1453894597 /home/veritas/projects/raidix/tasks/dictionary/main.h
+	<stdio.h>
+	<assert.h>
+	<stdlib.h>
+	<unistd.h>
+	<errno.h>
+	<string.h>
+	"log.h"
+
+1453895420 /home/veritas/projects/raidix/tasks/dictionary/log.h
+	<stdlib.h>
+
+1453895334 /home/veritas/projects/raidix/tasks/dictionary/entry.h
+	"main.h"
+
+1453899015 source:/home/veritas/projects/raidix/tasks/dictionary/commands.c
+	"entry.h"
+
+1453899741 source:/home/veritas/projects/raidix/tasks/dictionary/log.c
+
+1453899868 source:/home/veritas/projects/raidix/tasks/dictionary/entry.c
+	<stdio.h>
+

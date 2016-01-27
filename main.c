@@ -20,7 +20,7 @@ void check()
 		fprintf( stderr, "Размер uint32 не 32 бита, а %d. Надо поправить.\n", sizeof( uint32 ) );
 		exit( EXIT_WRONG_SIZEOF );
 	}
-	
+
 	if( 8 != sizeof( uint64 ) )
 	{
 		fprintf( stderr, "Размер uint64 не 64 бита, а %d. Надо поправить.\n", sizeof( uint64 ) );
@@ -37,7 +37,7 @@ void write_header( struct header_t * header, FILE * f )
 	int code = fseek( f, 0, SEEK_SET );
 	if( code == -1 )
 		WTF();
-		
+
 	code = fwrite( header, HEADER_SIZE, 1, f );
 	if( code != 1 )
 		WTF();
@@ -116,14 +116,14 @@ uint64 find_word( FILE * f, char * pattern )
 	{
 		start = offset;
 		// TODO: совсем не обязательно выделять память здесь
-		offset = read_entry( f, &entry, start, READ_ENTRY_WORD );
+		offset = read_entry( f, &entry, start, READ_ENTRY_WORD | READ_ENTRY_DO_SEEK );
 		int good = 0;
 		if( existent_entry( &entry ) )
 		{
 			good = strcmp( entry.word, pattern ) == 0;
 			free_entry( &entry );
 		}
-			
+
 		if( good )
 			return start;
 	}
@@ -185,9 +185,9 @@ int main( int argc, char ** argv )
 		fprintf( stderr, "Usage: dictionary [words.db]\n" );
 		exit( EXIT_WRONG_USAGE );
 	}
-	
+
 	assert( NULL != db_filename );
-	
+
 	FILE * f = NULL;
 	int code = access( db_filename, R_OK | W_OK );
 	// Нет прав, не существует файл или что-нибудь ещё
@@ -217,12 +217,12 @@ int main( int argc, char ** argv )
 		fprintf( stderr, "INFO: Существующий файл открыт для работы.\n" );
 	}
 	assert( NULL != f );
-	
+
 	fseek( f, 0, SEEK_END );
 	int length = ftell( f );
 	fprintf( stderr, "DEBUG: Длина файла: %d\n", length );
-	
-	
+
+
 	if( length < HEADER_SIZE )
 	{
 		// Длина файла заведомо меньше размера header. Пишем новый.
@@ -232,22 +232,22 @@ int main( int argc, char ** argv )
 	{
 		// Читаем
 		read_header( &header, f );
-		
+
 		// Проверяем
-		if( header.version != 1 )
+		if( header.version != 1 || header.actual_words > header.total_words )
 		{
 			fprintf( stderr, "FATAL: База данных (%s), вероятно, испорчена. Возможно, стоит её удалить.\n", db_filename );
 			WTF();
 		}
 	}
-	
+
 	// Всё есть. Можно работать.
 	printf( "Введите help для справки, quit для выхода.\n" );
 	int working = 1;
 	while( working )
 	{
 		printf( "> " );
-	
+
 		char str[6];
 		fgets( str, 6, stdin );
 		remove_newline( str );
@@ -288,7 +288,7 @@ int main( int argc, char ** argv )
 			fprintf( stderr, "ERROR: Неизвестная команда '%s'\n", str );
 		}
 	}
-	
+
 	/*
 	Операции:
 	1. Добавить слово. Имя (128 байт), содержание (не ограничено) ->
