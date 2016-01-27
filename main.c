@@ -1,9 +1,6 @@
-#include <stdio.h>
-#include <assert.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
+#include "main.h"
+
+#include "entry.h"
 
 /*
 План:
@@ -14,16 +11,7 @@
 5. Сделать бинарное отсортированное дерево для хэшей.
 */
 
-#define uint32 unsigned int
-#define uint64 unsigned long
-
 #define DEFAULT_DB_NAME		"default.db"
-
-#define EXIT_WRONG_SIZEOF (1)
-#define EXIT_WRONG_USAGE  (2)
-#define EXIT_WTF		  (3)
-#define EXIT_TODO		  (4)
-#define EXIT_WRONG_RIGHTS (5)
 
 void check()
 {
@@ -40,21 +28,9 @@ void check()
 	}
 }
 
-#define WTF() wtf( __LINE__ )
 
-void wtf( int line_no )
-{
-	fprintf( stderr, "[WTF] Ошибка на строке %d.\n", line_no );
-	exit( EXIT_WTF );
-}
 
-#define TODO( message ) todo( __LINE__, message )
 
-void todo( int line_no, char * message )
-{
-	fprintf( stderr, "[TODO] Строка %d: %s\n", line_no, message );
-	exit( EXIT_TODO );
-}
 
 // Формат базы (little endian).
 
@@ -65,34 +41,17 @@ void todo( int line_no, char * message )
 */
 #define HEADER_SIZE	(4*2)
 
+/*
+	Страница:
+	0 words			int32 количество слов в странице
+*/
 struct header_t
 {
 	uint32 version;
 	uint32 words;
 };
 
-/*
-	Страница:
-	0 words			int32 количество слов в странице
-	
-	Слова
-	0 word_len			byte		word length
-  1-3 content_len		byte[3]		article length
-	? word				char[?]		null-terminated word
-	? content			char[?]		null-terminated content
-	
-	Удалённое слово
-	0 remove_flag		byte		значение 0
-  1-3 remove_length		byte[3]		бывшие ранее word_len+content_len
-rem_l ...							мусор
-*/
-struct entry_t
-{
-	int	word_len;
-	int content_len;
-	char * word;
-	char * content;
-};
+
 
 void write_header( struct header_t * header, FILE * f )
 {
@@ -161,38 +120,9 @@ uint64 jump_to_first_word( FILE * f )
 	return offset;
 }
 
-uint64 read_entry( FILE * f, struct entry_t * entry, uint64 offset )
-{
-	uint32 temp;
-	int code = fread( &temp, 4, 1, f );
-	if( 1 != code )
-		WTF();
-	offset += 4;
-		
-	entry->word_len = temp & 0xFF;
-	entry->content_len = temp >> 8;
-	
-	// выделяем память под слово и читаем его, устанавливаем \0.
-	entry->word = malloc( entry->word_len+1 );
-	code = fread( entry->word, entry->word_len, 1, f );
-	if( 1 != code )
-		WTF();
-	offset += entry->word_len;
-	entry->word[entry->word_len+1] = 0;
-	
-	// TODO: здесь надо читать статью, и сделать флаг, указывающий
-	// что не надо запоминать значение.
-	offset += entry->content_len;
-	code = fseek( f, offset, SEEK_SET );
-	if( 0 != code )
-		WTF();
-}
 
-void free_entry( struct entry_t * entry )
-{
-	free( entry->word );
-	free( entry->content );
-}
+
+
 
 /*
 	Находит смещение, где находится запись для этого слова.
@@ -210,7 +140,7 @@ uint64 find_word( FILE * f, char * pattern )
 	{
 		start = offset;
 		// TODO: совсем не обязательно выделять память здесь
-		offset = read_entry( f, &entry, start );
+		offset = read_entry( f, &entry, start, READ_ENTRY_CONTENT | READ_ENTRY_WORD );
 		int good = strcmp( entry.word, pattern ) == 0;
 		free_entry( &entry );
 		if( good )
@@ -231,7 +161,7 @@ uint64 skip_to_end( FILE * f )
 	{
 		start = offset;
 		// TODO: совсем не обязательно выделять память здесь
-		offset = read_entry( f, &entry, start );
+		offset = read_entry( f, &entry, start, 0 );
 		free_entry( &entry );
 	}
 	return offset;
@@ -371,25 +301,20 @@ int main( int argc, char ** argv )
 		}
 		else if( strcmp( str, "add" ) == 0 )
 		{
-			printf( "Введите слово > " );
-			char word[130];
-			fgets( word, 130, stdin );
-			remove_newline( word );
-			uint64 index = find_word( f, word );
-			if( 0 == index )
-			{
-				// Слова нет, можно добавлять
-				char content[4096+8];
-				printf( "Введите толкование > " );
-				// TODO: ввод множества строк
-				fgets( content, 4096, stdin );
-				remove_newline( content );
-				add_word( f, word, content );
-			}
-			else
-			{
-				TODO( "Прочитать толкование, запомнить слово, вставить новую, удалить старую." );
-			}
+			command_add( f );
+		}
+		else if( strcmp( str, "find" ) == 0 )
+		{
+			command_find( f );
+		}
+		else if( strcmp( str, "del" ) == 0 ||
+				 strcmp( str, "rm" ) == 0 )
+		{
+			command_remove( f );
+		}
+		else if( strcmp( str, "frag" ) == 0 )
+		{
+			command_defragment( f );
 		}
 		else
 		{
