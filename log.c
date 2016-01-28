@@ -3,7 +3,7 @@
 void wtf( int line_no, char * file_name )
 {
     fflush(stdout);
-	fprintf( stderr, "[WTF] Ошибка на строке %d в файле %s.\n", line_no, file_name );
+	fprintf( stderr, "[WTF] Ошибка в файл %s на строке %d.\n", file_name, line_no );
 	fflush(stderr);
 	exit( EXIT_WTF );
 }

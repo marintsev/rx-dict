@@ -10,11 +10,38 @@ void read_word(char * word, int size) {
 	assert(strlen(word) != 0);
 }
 
-void read_content(char * content, int size) {
-	printf("Введите толкование > ");
+extern char * read_content();
+
+/*
+ *
+ */
+
+char * read_content() {
+	printf("<Enter> -- новая строка, <Enter><Enter> -- завершить ввод.\n");
+	printf("Введите толкование> ");
+	char * content = NULL;
 	// TODO: ввод множества строк
-	fgets(content, 4096, stdin);
-	remove_newline(content);
+	char line[4096];
+	while (1) {
+		fgets(line, 4096, stdin);
+		//remove_newline(line);
+		// добавить строку
+		if (strlen(line) != 1)
+		{
+			if (content == NULL) {
+				content = malloc(strlen(line) + 1);
+				strcpy(content, line);
+			} else {
+				char * new_content = malloc(strlen(content) + strlen(line) + 1);
+				strcpy(new_content, content);
+				strcat(new_content, line);
+				free(content);
+				content = new_content;
+			}
+		} else {
+			return content;
+		}
+	}
 }
 
 void command_add(FILE * f) {
@@ -24,17 +51,17 @@ void command_add(FILE * f) {
 	uint64 index = find_word(f, word);
 	if (0 == index) {
 		// Слова нет, можно добавлять
-		char content[4096 + 8];
-		read_content(content, 4096);
+		char * content = read_content();
 		add_word(f, word, content);
+		free( content );
 	} else {
 		// найденное слово запомним
 		struct entry_t entry;
 		read_entry(f, &entry, index, READ_ENTRY_WORD | READ_ENTRY_DO_SEEK);
 		remove_words(f, entry.word);
-		char content[4096 + 8];
-		read_content(content, 4096);
+		char * content = read_content();
 		add_word(f, entry.word, content);
+		free( content );
 		free_entry(&entry);
 
 		//TODO( "Прочитать толкование, запомнить слово, вставить новую, удалить старую." );
