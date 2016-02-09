@@ -12,10 +12,6 @@ void read_word(char * word, int size) {
 
 extern char * read_content();
 
-/*
- *
- */
-
 char * read_content() {
 	printf("<Enter> -- новая строка, <Enter><Enter> -- завершить ввод.\n");
 	printf("Введите толкование> ");
