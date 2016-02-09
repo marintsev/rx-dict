@@ -33,6 +33,7 @@ extern void   write_entry( FILE * f, struct entry_t * entry );
 extern int    existent_entry( struct entry_t * entry );
 extern uint64 entry_size( struct entry_t * entry );
 extern void   free_entry( struct entry_t * entry );
+extern void mark_deleted_entry( struct entry_t * entry );
 
 #endif
 

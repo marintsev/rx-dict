@@ -17,11 +17,11 @@
 #define EXIT_TODO		  (4)
 #define EXIT_WRONG_RIGHTS (5)
 
+#define HEADER_SIZE	(4 * 3)
+
 #include "log.h"
 
 // TODO: перетащить в header.c
-
-#define HEADER_SIZE	(4 * 3)
 
 struct header_t
 {

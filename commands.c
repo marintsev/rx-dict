@@ -1,6 +1,9 @@
-﻿#include "main.h"
+﻿#include "commands.h"
 
+#include "main.h"
 #include "entry.h"
+#include "utils.h"
+#include "db.h"
 
 void read_word(char * word, int size) {
 	printf("Введите слово> ");
@@ -94,9 +97,7 @@ int remove_words(FILE * f, char * word) {
 		}
 		struct entry_t entry;
 		// TODO: дважды read_entry -- плохо
-		uint64 index;
-		index = read_entry(f, &entry, start, READ_ENTRY_ALL);
-
+		read_entry(f, &entry, start, READ_ENTRY_ALL);
 		mark_deleted_entry(&entry);
 		count++;
 
